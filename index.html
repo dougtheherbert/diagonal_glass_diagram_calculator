@@ -1,0 +1,812 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width = device-width, initial-scale = 1">
+    <title>Diagonal glass diagram generator</title>
+    <!--<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">-->
+    <style>
+.theDiv{
+    width: 340px;
+    height:340px;
+    margin-top: 0px;
+    margin-bottom: 10px;
+    margin: auto;
+    padding: 0px;
+    border: none;
+    background-color: rgb(199, 199, 199);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.theContainer{
+    width: 360px;
+    height: auto;
+    margin: auto;
+    padding-bottom: 15px;
+    padding-top: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border: none;
+    background-color: rgb(47, 47, 148);
+    border-radius: 10px;
+}
+
+.canvasStyle{
+    border: none;
+    width: 340px;
+    height:340px;
+}
+
+body{
+    justify-content: center;
+    background-color: rgb(43, 43, 43);
+    font-family: Arial, Helvetica, sans-serif;
+    color:black;
+}
+
+.inputField{
+    width: 130px;
+    border-radius: 5px;
+    border: none;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    margin-left: 28px;
+    background-color: rgb(199, 199, 199);
+}
+
+button[type=submit]{
+    width: 130px;
+    height: 42px;
+    background-color: rgb(90, 178, 79);
+    border-radius: 5px;
+    border: none;
+    margin-top: 6px;
+    margin-left: 0;
+    margin-right: 8px;
+    margin-bottom: 2px;
+    font-size: 15px;
+}
+
+input[type=checkbox]{
+    margin-top: 10px;
+}
+
+.checkboxDiv{
+    margin: 0px;
+    padding: 0px;
+    padding-left: 10px;
+}
+
+p.bold{
+    color: #000000;
+    margin-left: 10px;
+    font-weight: bold;
+}
+
+p{
+    color: #000000;
+    margin-left: 10px;
+}
+    </style>
+</head>
+<body>
+    <div class="theContainer">
+
+    <!--Instructions-->
+    <div class="theDiv">
+        <!--Canvas area-->
+        <canvas id="theCanvas" class="canvasStyle">
+    </div>
+
+    <!--Buttons: 2x2 layout-->
+    <div style="display: flex; flex-wrap: wrap; width: 268px; margin: 0 auto 12px auto;">
+        <button type="submit" onClick="mainFunc()" class="buttonStyle">Calculate</button>
+        <button type="submit" onClick="clearDimensions()" class="buttonStyle" style="background-color: rgb(181, 85, 94); margin-right: 0;">Clear</button>
+        <button type="submit" onClick="rotateInput()" class="buttonStyle" style="background-color: rgb(210, 166, 45);">Rotate</button>
+        <button type="submit" onClick="exportCanvas()" class="buttonStyle" style="background-color: rgb(196, 209, 56); margin-right: 0;">Export</button>
+    </div>
+
+    <!--Input fields:-->
+    <!--Top, bottom, left, right-->
+    <input type="number" id="Top" value="1000" class="inputField">
+        <label for="Top" visibility: hidden>Top measurement</label>Top<br>
+    
+    <input type="number" id="Right" value="1000" class="inputField">
+        <label for="Right" visibility: hidden>Right measurement</label>Right<br>
+    
+    <input type="number" id="Bottom" value="1000" class="inputField">
+        <label for="Bottom" visibility: hidden>Bottom measurement</label>Bottom<br>
+    
+    <input type="number" id="Left" value="1004" class="inputField">
+        <label for="Left" visibility: hidden>Left measurement</label>Left<br>
+    
+    <!--TL/BR, TR/BL-->
+    <input type="number" id="TRBL" value="902" class="inputField">
+        <label for="TRBL" visibility: hidden>TR -- BL diagonal</label>TR - BL diagonal<br>
+    
+    <input type="number" id="TLBR" value="900" class="inputField">
+        <label for="TLBR" visibility: hidden>TL -- BR diagonal</label>TL - BR diagonal<br>
+    
+    <!--Glass type, number of panels required-->
+    
+    <input type="text" id="inputGlassType" value="4mm clear toughened" class="inputField">
+        <label for="inputGlassType" visibility: hidden>Glass thickness and type</label>Glass type<br>
+    
+    <input type="number" id="inputGlassQuantity" value="1" class="inputField">
+        <label for="inputGlassQuantity" visibility: hidden>Glass quantity</label>Quantity<br>
+
+    
+    
+    <!--Check boxes - polish edges-->
+<div class="checkboxDiv">
+    <!--Check box - set minimum rake to 3mm-->
+
+    <input type="checkbox" id="setMinimumRake" checked>
+        <label for="setMinimumRake"> Set minimum rake to 3mm</label><br>
+
+    <!--Check box - display 2mm rakes as 3mm (Only works if minimum rake is set).-->
+
+    <input type="checkbox" id="2mmRakeTo3mm" checked>
+        <label for="2mmRakeTo3mm"> Display 2mm rakes as 3mm (Only works if minimum rake is selected)</label><br>
+
+</div>
+
+    <div style="color: black; margin: 15px 20px 5px 20px; font-family: Arial, Helvetica, sans-serif; line-height: 1.45;">
+        <p>If you have an out of square opening this calculator will take the height, width and both diagonals and generate a diagram.</p>
+        <p>The diagonals can be measured with the tape measure in the corner of the window. This calculator is designed to use the difference between the diagonals. It will work as long as both diagonals are out by the same amount.</p>
+        <p>If the diagram has two or three raked edges try clicking the rotate button. The new diagram will still be the same shape, just drawn a different way.</p>
+        <p style="margin-top: 12px; margin-bottom: 4px;"><strong>Keyboard shortcuts:</strong></p>
+        <div style="display: flex; font-family: Arial, Helvetica, sans-serif; margin-bottom: 8px;">
+            <div style="min-width: 65px; margin-right: 25px;">
+                Enter<br>
+                Esc<br>
+                Alt+R<br>
+                Alt+E
+            </div>
+            <div>
+                Next field -- Calculate<br>
+                Clear<br>
+                Rotate<br>
+                Export
+            </div>
+        </div>
+
+        <pre style="margin-top: 18px; font-family: Arial, Helvetica, sans-serif; font-size: 12px; white-space: pre-wrap; color: black;">MIT License
+
+Copyright (c) 2026 Doug Herbert
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.</pre>
+    </div>
+
+</div>
+
+<script>
+// Input dimensions:
+let topInput;
+let rightInput;
+let bottomInput;
+let leftInput;
+// Diagonal inputs:
+let trblInput;
+let tlbrInput;
+// Bottom left angles of each triangle (total will make the bottom/left angle of the square)
+let triangleAradians;
+let triangleBradians;
+// Diagonal outputs:
+let initialTrblOutput;
+let trblOutput;
+// Initialise tlbrOutput to 0 so the for loop in calculateShape() will work
+let tlbrOutput = 0;
+// Display ratio - how big the square should be drawn in relation to it's actual size to hopefully keep it within contentArea. 1 = same size, 0.5 = half size, etc.
+let displayRatio;
+// Diplay ratio setting is roughly how much space the animation should use on the canvas. 300 should allow enough margin if the canvas is 400 x 400.
+let contentArea = 380;
+// Minimum output dimension (display only) - must be less than 1/3 of contentArea
+let minimumDimension = 80;
+// Coordinates:
+let trX;
+let trY;
+let brX;
+let brY;
+let blX;
+let blY;
+let tlX;
+let tlY;
+// Final display coordinates:
+const outputCoordinates = [];
+// Canvas variables
+let canvas;
+let ctx;
+// Calculation/animation logic
+let loopCount;
+let closeAnimation;
+// Frame rate calculator:
+let counter = 0;
+let startTime;
+let prevTime;
+let currentTime;
+let timeSinceLast;
+let timeElapsed;
+let averageTime;
+let closePaintInterval;
+// Final display settings
+let is2mmRakeIncrement;
+let is3mmMinimumRake;
+// Glass type, number of panels required:
+    //let glassType;
+    //let glassQuantity;
+// Output measurements after rake adjustments
+let topOutput;
+let rightOutput;
+let bottomOutput;
+let leftOutput;
+// Rakes after rake adjustments
+let leftRakeOutput;
+let topRakeOutput;
+let rightRakeOutput;
+
+function SetupCanvas(){
+    canvas = document.getElementById("theCanvas");
+    ctx = canvas.getContext("2d");
+    canvas.width = 400;
+    canvas.height = 400;
+    fillBackground();
+}
+
+function fillBackground(){
+    if (!ctx) return;
+    ctx.fillStyle = "rgb(199, 199, 199)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function mainFunc(){
+    // Scroll to the top so the diagram is visible
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    // Load inputs to top, bottom, left, right, trblInput, tlbrInput, glass type, number of panels
+
+    SetupCanvas();
+    
+    topInput = parseInt(document.getElementById("Top").value);
+    rightInput = parseInt(document.getElementById("Right").value);
+    bottomInput = parseInt(document.getElementById("Bottom").value);
+    leftInput = parseInt(document.getElementById("Left").value);
+
+    // Diagonal inputs:
+    
+    trblInput = parseInt(document.getElementById("TRBL").value);
+    tlbrInput = parseInt(document.getElementById("TLBR").value);
+    
+    // Glass type, number of panels required:
+    /*glassType = document.getElementById("inputGlassType").value;
+    glassQuantity = parseInt(document.getElementById("inputGlassQuantity").value);*/
+
+    // Load Checkbox inputs
+    /*is3mmMinimumRake = document.getElementById("setMinimumRake").value;
+    is2mmRakeTo3mm = document.getElementById("2mmRakeTo3mm").value;*/
+
+    // Find the largest of left*2, right*2, (left+(bottom/2))*2 and (right+(bottom/2))*2 using Math.max(). Set displayRatio to (contentArea/Math.max())
+    displayRatio = contentArea / Math.max((leftInput * 2), (rightInput * 2), ((leftInput + (bottomInput / 2)) * 2), ((rightInput + (bottomInput / 2)) * 2));
+
+    // FYI The square is split into two triangles. Bottom/right (triangle A) and top/left (triangle B) intersected by trblOutput.
+
+    // Find the lesser of right+bottom and top+left. Subtract 3mm and store in initialTrblOutput.
+    if((rightInput + bottomInput) < (topInput + leftInput)){
+        initialTrblOutput = (rightInput + bottomInput) - 3;
+    } else {
+        initialTrblOutput = (topInput + leftInput) - 5;
+    }
+
+    trblOutput = initialTrblOutput;
+
+    // Run calcLoop once to set variables
+    calcLoop();
+
+    // Find out how many calculations are needed for each frame refresh
+    loopCount =  (trblOutput - trblInput) / (110 / averageTime);
+    loopCount = parseInt(loopCount.toFixed(0));
+
+    animateSwitch();
+}
+
+function rotateInput(){
+    // Rotate top/right/bottom/left
+    let rotateVar = document.getElementById("Top").value;
+    document.getElementById("Top").value = document.getElementById("Right").value;
+    document.getElementById("Right").value = document.getElementById("Bottom").value;
+    document.getElementById("Bottom").value = document.getElementById("Left").value;
+    document.getElementById("Left").value = rotateVar;
+    // Swap diagonal measurements
+    rotateVar = document.getElementById("TRBL").value;
+    document.getElementById("TRBL").value = document.getElementById("TLBR").value;
+    document.getElementById("TLBR").value = rotateVar;
+
+    // Automatically recalculate and redraw the diagram
+    mainFunc();
+}
+
+function clearDimensions(){
+    document.getElementById("Top").value = "";
+    document.getElementById("Right").value = "";
+    document.getElementById("Bottom").value = "";
+    document.getElementById("Left").value = "";
+    document.getElementById("TRBL").value = "";
+    document.getElementById("TLBR").value = "";
+}
+
+function exportCanvas(){
+    const canvas = document.getElementById("theCanvas");
+    if (!canvas) return;
+
+    try {
+        const link = document.createElement("a");
+        link.download = "glass-shape.png";
+        link.href = canvas.toDataURL("image/png");
+        
+        // Firefox requires the link to be in the DOM before click() works reliably
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } catch (err) {
+        console.error("Export failed:", err);
+        alert("Could not export the image. Please try again after calculating the shape.");
+    }
+}
+
+// Keyboard shortcuts
+document.addEventListener("keydown", function(e) {
+    // Enter → Calculate (only if not focused in an input field)
+    if (e.key === "Enter" && !e.target.classList.contains("inputField")) {
+        e.preventDefault();
+        mainFunc();
+    }
+    // Escape → Clear
+    else if (e.key === "Escape") {
+        e.preventDefault();
+        clearDimensions();
+    }
+    // Alt+R → Rotate
+    else if (e.altKey && e.key.toLowerCase() === "r") {
+        e.preventDefault();
+        rotateInput();
+    }
+    // Alt+E → Export
+    else if (e.altKey && e.key.toLowerCase() === "e") {
+        e.preventDefault();
+        exportCanvas();
+    }
+});
+
+// Mobile / input-field Enter behaviour: next field or calculate
+const inputOrder = [
+    "Top", "Right", "Bottom", "Left", "TRBL", "TLBR", "inputGlassType", "inputGlassQuantity"
+];
+
+inputOrder.forEach(function(id, index) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            if (index < inputOrder.length - 1) {
+                // Move to next input
+                document.getElementById(inputOrder[index + 1]).focus();
+            } else {
+                // Last field → calculate
+                mainFunc();
+            }
+        }
+    });
+});
+
+function animateSwitch(){
+if((trblOutput - tlbrOutput) > (trblInput - tlbrInput)){
+    calcLoop();
+    closeAnimation = requestAnimationFrame(animateSwitch);
+} else {
+    displayResult();
+}
+
+
+}
+
+function calcLoop(){
+    // if(trblOutput < 5) return an error and stop the loop.
+    if(trblOutput < 5){
+        alert("An error has occured.");
+        return;
+    }
+    
+for (i = 0; i < loopCount && (trblOutput - tlbrOutput) > (trblInput - tlbrInput); i++) {
+    // Using bottom, find x and y positions of two vertices to form the base of triangle A.
+    // 0, 0 is bottom center of the square
+    let leftHalfBottom = Math.round(bottomInput/2);
+
+    blX = 0 - leftHalfBottom;
+    blY = 0;
+    brX = blX + bottomInput;
+    brY = 0;
+
+    // Use arccosine (law of cosines) to calculate the bottom/left angle of triangle A.
+    triangleAradians = Math.acos(((bottomInput ** 2) + (trblOutput ** 2) - (rightInput ** 2))/(2 * bottomInput * trblOutput));
+
+    // Use arccosine (law of cosines) to calculate the bottom/left angle of triangle B.
+    triangleBradians = Math.acos(((leftInput ** 2) + (trblOutput ** 2) - (topInput ** 2))/(2 * leftInput * trblOutput));
+
+    // Plot x and y positions of the top vertex of triangle A (top/right of the square).
+
+    // Use cosine (Adjacent = cosine(triangleAradians) * Hypotenuse) to find X
+
+    // Use sine (Opposite = sine(triangleAradians) * Hypotenuse) to find y
+
+    trX = blX + (Math.cos(triangleAradians) * trblOutput);
+    trY = Math.sin(triangleAradians) * trblOutput;
+
+    // Plot x and y positions of the top vertex of triangle B (top/left of the square).
+    // Use cosine (Adjacent = cosine(triangleAradians + triangleBradians) * Hypotenuse) to find X
+    // Use sine (Opposite = sine(triangleAradians + triangleBradians) * Hypotenuse) to find y
+    tlX = blX + (Math.cos(triangleAradians + triangleBradians) * leftInput);
+    tlY = Math.sin(triangleAradians + triangleBradians) * leftInput;
+
+    // Calculate tlbrOutput.
+    tlbrOutput = Math.sqrt((tlY ** 2) + ((brX - tlX) ** 2));
+
+    // Decrement trblOutput
+    trblOutput = trblOutput - 0.1;
+
+    // Using calculateDisplayLength() and the x/y coordinates, draw lines for bottom, right, top then left.
+    // FYI 0, 0 (bottom center of the square)
+    // will equal 200, 350 on the canvas
+    // Y values are subtracted because x/y positive values represent movement up and right (not down/right).
+    fillBackground();
+    ctx.beginPath();
+    ctx.strokeStyle = "#000000";
+    ctx.lineWidth = 2;
+    ctx.moveTo(200 + calculateDisplayLength(blX), 350 - calculateDisplayLength(blY));
+    ctx.lineTo(200 + calculateDisplayLength(tlX), 350 - calculateDisplayLength(tlY));
+    ctx.lineTo(200 + calculateDisplayLength(trX), 350 - calculateDisplayLength(trY));
+    ctx.lineTo(200 + calculateDisplayLength(brX), 350 - calculateDisplayLength(brY));
+    ctx.lineTo(200 + calculateDisplayLength(blX), 350 - calculateDisplayLength(blY));
+    ctx.stroke();
+}
+}
+
+function calculateDisplayLength(dist){
+    // Take a distance as input
+    // use displayratio to resize;
+        return dist * displayRatio;
+}
+
+function displayResult(){
+    //trY; (Rakes) Add value to shift up
+    //tlY;
+    outputCoordinates[0] = parseInt(trY.toFixed(0));
+    outputCoordinates[1] = parseInt(tlY.toFixed(0));
+    //trX; (Rakes) Add value to shift right
+    //brX;
+    outputCoordinates[4] = parseInt(trX.toFixed(0));
+    outputCoordinates[5] = parseInt(brX.toFixed(0));
+    //brY; (Rakes) No change - bottom
+    //blY;
+    outputCoordinates[2] = parseInt(brY.toFixed(0));
+    outputCoordinates[3] = parseInt(blY.toFixed(0));
+    //tlX; (Rakes) Subtract value to shift left
+    //blX;
+    outputCoordinates[6] = parseInt(tlX.toFixed(0));
+    outputCoordinates[7] = parseInt(blX.toFixed(0));
+
+    // Get checkbox settings
+    is2mmRakeIncrement = document.getElementById("2mmRakeTo3mm");
+    is3mmMinimumRake = document.getElementById("setMinimumRake");
+
+    // Check x and y coordinates to determine which sides are raked. Check input settings. Delete small rakes and increase 2mm rakes to 3mm if required.
+
+    if(is3mmMinimumRake.checked == true && is2mmRakeIncrement.checked == true){
+        increment2mmRakesPositive(outputCoordinates, 0, 1);
+        increment2mmRakesPositive(outputCoordinates, 4, 5);
+
+        increment2mmRakesNegative(outputCoordinates, 6, 7);
+    }
+
+    if(is3mmMinimumRake.checked == true){
+        deleteSmallRakesPositive(outputCoordinates, 0, 1);
+        deleteSmallRakesPositive(outputCoordinates, 4, 5);
+
+        deleteSmallRakesNegative(outputCoordinates, 6, 7);
+    }
+
+    // Record dimensions before expanding rakes and dimensions for display
+    topOutput = outputCoordinates[4] + (outputCoordinates[6] * -1); // trX + tlX
+    rightOutput = outputCoordinates[0]; // trY
+    bottomOutput = outputCoordinates[5] + (outputCoordinates[7] * -1); // brX + blX
+    leftOutput = outputCoordinates[1]; // tlY
+    // Rakes
+    leftRakeOutput = Math.abs(outputCoordinates[6] - outputCoordinates[7]);
+    topRakeOutput = Math.abs(outputCoordinates[0] - outputCoordinates[1]);
+    rightRakeOutput = Math.abs(outputCoordinates[4] - outputCoordinates[5]);
+
+    /*
+    outputCoordinates[0] trY
+    outputCoordinates[1] tlY
+
+    outputCoordinates[4] trX
+    outputCoordinates[5] brX
+
+    outputCoordinates[2] brY
+    outputCoordinates[3] blY
+
+    outputCoordinates[6] tlX
+    outputCoordinates[7] blX
+    */
+
+    
+    // Convert coordinates to display on the canvas. Do all calculations before this step.
+    for(i = 0; i < 4; i++){
+        // Convert Y values to canvas positions (raised slightly to leave room for bottom dimension)
+        outputCoordinates[i] = 340 - calculateDisplayLength(outputCoordinates[i]);
+    }
+
+    for(i = 4; i < 8; i++){
+        // Convert X values to canvas positions
+        outputCoordinates[i] = 200 + calculateDisplayLength(outputCoordinates[i]);
+    }
+
+    // Set minimum display dimensions (array, bignumber, smallnumber)
+    // Left blY, tlY
+    // Right brY, trY
+    minimumDisplaySizeLandR(outputCoordinates, 3, 1,);
+    minimumDisplaySizeLandR(outputCoordinates, 2, 0);
+
+    // Top trX, tlX
+    // Bottom brX, blX
+    minimumDisplaySizeTandB(outputCoordinates, 5, 7);
+    minimumDisplaySizeTandB(outputCoordinates, 4, 6);
+
+    // Check x and y coordinates to determine which sides are raked. Set rakes to at least 50px.
+    // trY, tlY
+    bigRakesNegative(outputCoordinates, 0, 1);
+    // trX, brX
+    bigRakesPositive(outputCoordinates, 4, 5);
+    // tlX, blX
+    bigRakesNegative(outputCoordinates, 6, 7);
+    
+    // Redraw canvas.
+    fillBackground();
+    ctx.beginPath();
+    ctx.strokeStyle = "#000000";
+    ctx.lineWidth = 2;
+    ctx.moveTo(outputCoordinates[7], outputCoordinates[3]);
+    ctx.lineTo(outputCoordinates[6], outputCoordinates[1]);
+    ctx.lineTo(outputCoordinates[4], outputCoordinates[0]);
+    ctx.lineTo(outputCoordinates[5], outputCoordinates[2]);
+    ctx.lineTo(outputCoordinates[7], outputCoordinates[3]);
+    ctx.stroke();
+
+    // Add lines and text to represent horizontal/vertical distances
+    ctx.beginPath();
+    ctx.strokeStyle = "#000000";
+    ctx.fillStyle = "#000000";
+    ctx.lineWidth = 3;
+    ctx.font = "20px Arial";
+    ctx.textBaseline = "middle";
+    // Left
+    ctx.moveTo(10, outputCoordinates[3]);
+    ctx.lineTo(10, outputCoordinates[1]);
+    ctx.fillText(leftOutput, 17, (outputCoordinates[1] + outputCoordinates[3]) / 2);
+    // Top rake
+    if(outputCoordinates[1] != outputCoordinates[0]){
+        ctx.moveTo(20, outputCoordinates[1]);
+        ctx.lineTo(20, outputCoordinates[0]);
+        ctx.fillText(topRakeOutput, 27, (outputCoordinates[1] + outputCoordinates[0]) / 2);
+    }
+    // Top
+    ctx.moveTo(outputCoordinates[6], Math.min(outputCoordinates[0], outputCoordinates[1]) - 35);
+    ctx.lineTo(outputCoordinates[4], Math.min(outputCoordinates[0], outputCoordinates[1]) - 35);
+    ctx.textAlign = "center";
+    ctx.fillText(topOutput, (outputCoordinates[6] + outputCoordinates[4]) / 2, Math.min(outputCoordinates[0], outputCoordinates[1]) - 20);
+    // Left rake
+    if(outputCoordinates[6] != outputCoordinates[7]){
+        ctx.moveTo(outputCoordinates[6], Math.min(outputCoordinates[0], outputCoordinates[1]) - 45);
+        ctx.lineTo(outputCoordinates[7], Math.min(outputCoordinates[0], outputCoordinates[1]) - 45);
+        ctx.fillText(leftRakeOutput, (outputCoordinates[6] + outputCoordinates[7]) / 2, Math.min(outputCoordinates[0], outputCoordinates[1]) - 55);
+    }
+    // Right rake
+    if(outputCoordinates[4] != outputCoordinates[5]){
+        ctx.moveTo(outputCoordinates[4], Math.min(outputCoordinates[0], outputCoordinates[1]) - 45);
+        ctx.lineTo(outputCoordinates[5], Math.min(outputCoordinates[0], outputCoordinates[1]) - 45);
+        ctx.fillText(rightRakeOutput, (outputCoordinates[4] + outputCoordinates[5]) / 2, Math.min(outputCoordinates[0], outputCoordinates[1]) - 55);
+    }
+    // Right
+    ctx.moveTo(390, outputCoordinates[2]);
+    ctx.lineTo(390, outputCoordinates[0]);
+    ctx.textAlign = "end";
+    ctx.fillText(rightOutput, 383, (outputCoordinates[0] + outputCoordinates[2]) / 2);
+
+    // Bottom dimension line (similar format to top)
+    const bottomY = Math.max(outputCoordinates[2], outputCoordinates[3]);
+    ctx.moveTo(outputCoordinates[7], bottomY + 30);
+    ctx.lineTo(outputCoordinates[5], bottomY + 30);
+    ctx.textAlign = "center";
+    ctx.fillText(bottomOutput, (outputCoordinates[7] + outputCoordinates[5]) / 2, bottomY + 45);
+
+    ctx.stroke();
+
+    // Glass type and quantity (top left)
+    const glassType = document.getElementById("inputGlassType").value || "";
+    const glassQuantity = document.getElementById("inputGlassQuantity").value || "";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+    if (glassType) {
+        ctx.fillText(glassType, 15, 15);
+    }
+    if (glassQuantity) {
+        ctx.fillText("Quantity: " + glassQuantity, 15, 40);
+    }
+
+    cancelAnimationFrame(closeAnimation);
+}
+
+/*
+This script calls requestAnimationFrame() a bunch of times when DOMContentLoaded. The average time between paints in ms is stored in variable averageTime and returned by the main function getPaintInterval().
+
+More info in console.
+*/
+
+document.addEventListener("DOMContentLoaded", getPaintInterval);
+
+function getPaintInterval(){
+
+    if(counter == 0){
+        // On the first run initialise time variables
+        startTime = parseInt(performance.now());
+        prevTime = parseInt(performance.now());
+        counter++;
+    } else {
+        currentTime = performance.now();
+        timeSinceLast = currentTime - prevTime;
+        // Round to 0. Parse the string returned by toFixed
+        timeSinceLast = parseInt(timeSinceLast.toFixed(0));
+        if(timeSinceLast > 50 || timeSinceLast < 12){
+            // If the animation is paused by switching tabs timeSinceLast will be a massive number. 
+            // Add timeSinceLast to startTime and decrement the counter so it will not contribute to the average.
+            console.log("Time: " + timeSinceLast + "ms not counted as it is over 50ms or under 12ms. The animation might have been paused by switching tabs, or a smaller value is sometimes returned within the first 5 iterations.");
+            console.log("-------------------");
+            startTime += timeSinceLast;
+            counter--;
+            prevTime = currentTime;
+        } else{
+            calcAverage();
+        }
+    }
+
+    if(counter < 10){
+        // Continue until the required number of iterations have been completed
+        closePaintInterval = requestAnimationFrame(getPaintInterval);
+    } else {
+        console.log("returning average value: " + averageTime);
+        cancelAnimationFrame(closePaintInterval);
+        return averageTime;
+    }
+
+}
+
+function calcAverage(){
+    console.log("Time since last paint: " + timeSinceLast + " ms");
+
+    timeElapsed = currentTime - startTime;
+    timeElapsed = parseInt(timeElapsed.toFixed(0));
+    console.log("time elapsed: " + timeElapsed + " ms");
+
+    averageTime = (timeElapsed/counter);
+    averageTime = averageTime.toFixed(0);
+    console.log("Average time per frame so far: " + averageTime + " ms");
+
+    console.log("-------------------");
+
+    counter++;
+
+    prevTime = performance.now();
+}
+
+// Increment rake to the right
+function bigRakesPositive(arr, one, two){
+    if(arr[one] > arr[two]){
+        arr[one] = arr[two] + 40;
+    }
+    if(arr[two] > arr[one]){
+        arr[two] = arr[one] + 40;
+    }
+}
+
+// Decrement rakes left and top
+function bigRakesNegative(arr, one, two){
+    if(arr[one] < arr[two]){
+        arr[one] = arr[two] - 40;
+    }
+    if(arr[two] < arr[one]){
+        arr[two] = arr[one] - 40;
+    }
+}
+
+// Increment 2mm rakes to 3mm
+// Increment rakes for top and right
+function increment2mmRakesPositive(arr, one, two){
+    if(arr[one] == arr[two] + 2){
+        arr[one] = arr[two] + 3;
+    }
+    if(arr[two] == arr[one] + 2){
+        arr[two] = arr[one] + 3;
+    }
+}
+
+// Increment 2mm rakes to 3mm
+// Decrement rakes for left
+function increment2mmRakesNegative(arr, one, two){
+    if(arr[one] == arr[two] - 2){
+        arr[one] = arr[two] - 3;
+    }
+    if(arr[two] == arr[one] - 2){
+        arr[two] = arr[one] - 3;
+    }
+}
+
+// Delete 1-2mm rakes
+// Positive rakes for top and right
+function deleteSmallRakesPositive(arr, one, two){
+    if(arr[one] == (arr[two] + 2) || arr[one] == (arr[two] + 1)){
+        arr[one] = arr[two]; // If arr[one] is 1-2mm bigger, set to arr[two]
+    }
+    if(arr[two] == (arr[one] + 2) || arr[two] == (arr[one] + 1)){
+        arr[two] = arr[one]; // If arr[two] is 1-2mm bigger, set to arr[one]
+    }
+}
+
+// Delete 1-2mm rakes
+// Negative rakes for left
+function deleteSmallRakesNegative(arr, one, two){
+    if(arr[one] == (arr[two] - 2) || arr[one] == (arr[two] - 1)){
+        arr[one] = arr[two]; // If arr[one] is 1-2mm bigger, set to arr[two]
+    }
+    if(arr[two] == (arr[one] - 2) || arr[two] == (arr[one] - 1)){
+        arr[two] = arr[one]; // If arr[two] is 1-2mm bigger, set to arr[one]
+    }
+}
+
+// Set minimum display dimensions
+// Left blY, tlY
+// Right brY, trY
+function minimumDisplaySizeLandR(arr, one, two){
+    if(arr[one] - arr[two] < 110){
+            arr[two] = arr[one] - 110;
+    }
+}
+
+// Top trX, tlX
+// Bottom brX, blX
+function minimumDisplaySizeTandB(arr, one, two){
+    if(arr[one] - arr[two] < 110){
+            arr[one] += ((110 - (arr[one] - arr[two])) / 2);
+            arr[two] -= ((110 - (arr[one] - arr[two])) / 2);
+    }
+}
+</script>
+
+</body>
+</html>
